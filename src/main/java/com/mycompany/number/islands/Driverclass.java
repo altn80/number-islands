@@ -65,30 +65,28 @@ class Islands {
                                 break;
                             }
                         }
-                        if(buildNewIsland) {
+                        if (buildNewIsland) {
                             islands.add(new Island(piece));
                         }
                     }
                 }
-
             }
         }
-        
-        List<Island> islands2 = new ArrayList<>(islands);
-        List<Island> newIslands = new ArrayList<>();
-        Iterator<Island> iterator1 = islands.iterator();
-        while(iterator1.hasNext()) {
+
+        Iterator<Island> iterator1 = islands.stream().iterator();
+        while (iterator1.hasNext()) {
             Island island1 = iterator1.next();
-            for(Island island2 : islands2) {
-                if(island1 != island2) {
-                    if(island1.isPart(island2)) {
-                        island1.join(island2);
-                        iterator1.remove();
-                    }
+            Iterator<Island> iterator2 = islands.stream().iterator();
+            while (iterator2.hasNext()) {
+                Island island2 = iterator2.next();
+                if (island1 != island2 && island1.isPart(island2)) {
+                    island1.join(island2);
                 }
             }
         }
+        islands = islands.stream().filter(island -> !island.pieces.isEmpty()).collect(java.util.stream.Collectors.toList());
         return islands.size();
+
     }
 
 }
@@ -96,7 +94,7 @@ class Islands {
 class Island {
 
     List<Piece> pieces = new ArrayList<>();
-    
+
     Island(Piece piece) {
         pieces.add(piece);
     }
@@ -134,20 +132,21 @@ class Island {
         }
         return false;
     }
-    
+
     boolean isPart(Island island) {
-        for (Piece piece : island.pieces) {
-            if(this.isPart(piece)) {
-                return true;
-            }
+        if (island.pieces.stream().anyMatch((piece) -> (this.isPart(piece)))) {
+            return true;
         }
         return false;
     }
-    
-    void join(Island island) {
-        this.pieces.addAll(island.pieces);
-    }
 
+    Island join(Island island) {
+        if (this.isPart(island)) {
+            this.pieces.addAll(island.pieces);
+            island.pieces.clear();
+        }
+        return this;
+    }
 }
 
 class Piece {
